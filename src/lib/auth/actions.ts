@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 export interface AuthResponse {
@@ -61,7 +61,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
     return { success: true, redirectTo: '/onboarding' };
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  let { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -70,6 +70,37 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
       },
     },
   });
+
+  // If Supabase free tier email rate limit is hit, use Admin API with service role to create & auto-confirm user
+  if (error && (error.message.toLowerCase().includes('rate limit') || (error as any).status === 429)) {
+    try {
+      const adminSupabase = await createAdminClient();
+      const { data: adminUser, error: adminError } = await adminSupabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+        },
+      });
+
+      if (!adminError && adminUser?.user) {
+        // Automatically sign in the confirmed user
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (!signInError) {
+          return { success: true, redirectTo: '/onboarding' };
+        }
+      } else if (adminError) {
+        return { success: false, error: adminError.message };
+      }
+    } catch {
+      // Fall through to error return below
+    }
+  }
 
   if (error) {
     return { success: false, error: error.message };
@@ -107,6 +138,12 @@ export async function socialLoginAction(
   });
 
   if (error) {
+    if (error.message.toLowerCase().includes('not enabled') || error.message.toLowerCase().includes('unsupported provider')) {
+      return {
+        success: false,
+        error: `Login ${provider.toUpperCase()} belum diaktifkan di Supabase Dashboard (Authentication > Providers). Silakan login dengan Email/Password atau gunakan tombol Demo di bawah.`,
+      };
+    }
     return { success: false, error: error.message };
   }
 

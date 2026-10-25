@@ -32,8 +32,11 @@ export function AppSidebar() {
         </div>
         {!collapsed && (
           <div className="flex flex-col min-w-0">
-            <span className="font-bold text-sm tracking-tight truncate">TUMSET</span>
-            <span className="text-[10px] text-muted-foreground tracking-widest uppercase">Smart Kios</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-sm tracking-tight truncate">TUMSET</span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">AI</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-semibold tracking-wider uppercase">Smart Cashier POS</span>
           </div>
         )}
       </div>
