@@ -214,8 +214,12 @@ export async function createStoreAction(formData: FormData): Promise<AuthRespons
     return { success: false, error: 'Sesi pengguna tidak valid. Silakan login kembali.' };
   }
 
+  // Use Admin client to bypass RLS for onboarding
+  // New users don't have store membership yet, so RLS would block all inserts
+  const adminSupabase = await createAdminClient();
+
   // 1. Insert store
-  const { data: store, error: storeError } = await supabase
+  const { data: store, error: storeError } = await adminSupabase
     .from('stores')
     .insert({
       name,
@@ -231,7 +235,7 @@ export async function createStoreAction(formData: FormData): Promise<AuthRespons
   }
 
   // 2. Add user as owner in store_members
-  const { error: memberError } = await supabase.from('store_members').insert({
+  const { error: memberError } = await adminSupabase.from('store_members').insert({
     store_id: store.id,
     user_id: user.id,
     role: 'owner',
@@ -239,16 +243,28 @@ export async function createStoreAction(formData: FormData): Promise<AuthRespons
   });
 
   if (memberError) {
+    // Cleanup: delete the store if member insert fails
+    await adminSupabase.from('stores').delete().eq('id', store.id);
     return { success: false, error: memberError.message };
   }
 
   // 3. Create default categories for this store
-  await supabase.from('categories').insert([
+  await adminSupabase.from('categories').insert([
     { store_id: store.id, name: 'Sembako & Bahan Pokok', color: '#10b981' },
     { store_id: store.id, name: 'Makanan Instan & Snack', color: '#f59e0b' },
     { store_id: store.id, name: 'Minuman', color: '#3b82f6' },
     { store_id: store.id, name: 'Kebutuhan Rumah Tangga', color: '#8b5cf6' },
   ]);
 
+  // 4. Create default expense categories
+  await adminSupabase.from('expense_categories').insert([
+    { store_id: store.id, name: 'Listrik & Air' },
+    { store_id: store.id, name: 'Sewa Tempat' },
+    { store_id: store.id, name: 'Gaji Karyawan' },
+    { store_id: store.id, name: 'Transportasi' },
+    { store_id: store.id, name: 'Lain-lain' },
+  ]);
+
   return { success: true, redirectTo: '/dashboard' };
 }
+
