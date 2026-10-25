@@ -18,8 +18,15 @@ const STATIC_ASSETS = [
   '/icons/icon.svg',
 ];
 
-// Install Event - Pre-cache core routes
+// Development guard: If running on localhost or 127.0.0.1, unregister immediately and bypass
+const isDev = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
+
+// Install Event - Pre-cache core routes (production only)
 self.addEventListener('install', (event) => {
+  if (isDev) {
+    self.skipWaiting();
+    return;
+  }
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
@@ -28,13 +35,13 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate Event - Clean old caches
+// Activate Event - Clean old caches or all caches in dev
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
+          if (isDev || cache !== CACHE_NAME) {
             return caches.delete(cache);
           }
         })
@@ -46,6 +53,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event - Network First with Cache Fallback for Pages, Cache First for Static Assets
 self.addEventListener('fetch', (event) => {
+  if (isDev) {
+    return; // Bypass completely in development!
+  }
+
   const request = event.request;
 
   // Ignore non-GET or cross-origin requests
