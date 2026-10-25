@@ -1,0 +1,23 @@
+{
+  "name": "TUMSET Smart Kios",
+  "short_name": "TUMSET",
+  "description": "Aplikasi kasir kios modern dengan AI. Kelola penjualan, persediaan, dan laporan bisnis.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1a1d2e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "lang": "id",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}
