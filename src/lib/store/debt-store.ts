@@ -38,42 +38,7 @@ interface DebtStoreState {
 export const useDebtStore = create<DebtStoreState>()(
   persist(
     (set, get) => ({
-      debts: [
-        {
-          id: 'debt-1',
-          customer_name: 'Ibu Ratna (Tetangga Depan)',
-          customer_phone: '081298765432',
-          total_amount: 145000,
-          paid_amount: 50000,
-          remaining_amount: 95000,
-          due_date: '2026-10-30',
-          items_summary: 'Beras Ramos 5kg, Telur Ayam 1 Rak',
-          status: 'partial',
-          payments: [
-            {
-              id: 'pay-1',
-              amount: 50000,
-              payment_method: 'cash',
-              date: new Date(Date.now() - 86400000).toISOString(),
-              notes: 'Cicilan pertama',
-            },
-          ],
-          created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-        },
-        {
-          id: 'debt-2',
-          customer_name: 'Pak RT Bambang',
-          customer_phone: '085211223344',
-          total_amount: 85000,
-          paid_amount: 0,
-          remaining_amount: 85000,
-          due_date: '2026-11-01',
-          items_summary: 'Minyak Goreng Bimoli 2L, Gula Pasir 2kg',
-          status: 'unpaid',
-          payments: [],
-          created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-        },
-      ],
+      debts: [],
 
       addDebt: (data) => {
         const newDebt: CustomerDebt = {

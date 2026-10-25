@@ -25,20 +25,7 @@ interface ReturnStoreState {
 export const useReturnStore = create<ReturnStoreState>()(
   persist(
     (set, get) => ({
-      returns: [
-        {
-          id: 'ret-1',
-          return_number: 'RET-20261024-001',
-          return_type: 'customer',
-          product_name: 'Aqua Botol 600ml',
-          quantity: 1,
-          unit: 'btl',
-          refund_amount: 4500,
-          reason: 'damaged',
-          notes: 'Tutup botol bocor sebelum dibuka',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ],
+      returns: [],
 
       addReturn: (data) => {
         const return_number = `RET-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`;

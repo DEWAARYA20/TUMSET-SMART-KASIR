@@ -35,26 +35,7 @@ export const useExpenseStore = create<ExpenseStoreState>()(
         'Perawatan & Perbaikan Toko',
         'Lain-lain',
       ],
-      expenses: [
-        {
-          id: 'exp-1',
-          category: 'Kantong Plastik / Kresek & Kemasan',
-          amount: 35000,
-          description: 'Beli kresek hitam dan bening 3 pak',
-          payment_method: 'cash',
-          date: new Date().toISOString().slice(0, 10),
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: 'exp-2',
-          category: 'Listrik & Air (PLN/PDAM)',
-          amount: 150000,
-          description: 'Token listrik kios 1300VA',
-          payment_method: 'transfer',
-          date: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10),
-          created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-        },
-      ],
+      expenses: [],
 
       addExpense: (data) => {
         const newExpense: ExpenseItem = {

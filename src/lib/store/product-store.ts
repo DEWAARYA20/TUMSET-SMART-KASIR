@@ -224,21 +224,9 @@ export const INITIAL_PRODUCTS: ProductItem[] = [
 export const useProductStore = create<ProductStoreState>()(
   persist(
     (set, get) => ({
-      categories: INITIAL_CATEGORIES,
-      products: INITIAL_PRODUCTS,
-      movements: [
-        {
-          id: 'mov-1',
-          product_id: 'prod-1',
-          product_name: 'Beras Ramos 5kg',
-          movement_type: 'initial',
-          quantity_change: 24,
-          previous_stock: 0,
-          new_stock: 24,
-          notes: 'Saldo stok awal toko',
-          created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-        },
-      ],
+      categories: [],
+      products: [],
+      movements: [],
 
       addCategory: (cat) => {
         const id = 'cat-' + Date.now();
@@ -378,8 +366,9 @@ export const useProductStore = create<ProductStoreState>()(
 
       resetToDefaults: () => {
         set({
-          categories: INITIAL_CATEGORIES,
-          products: INITIAL_PRODUCTS,
+          categories: [],
+          products: [],
+          movements: [],
         });
       },
     }),
