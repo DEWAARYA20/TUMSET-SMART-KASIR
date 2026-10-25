@@ -61,7 +61,47 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
     return { success: true, redirectTo: '/onboarding' };
   }
 
-  let { data, error } = await supabase.auth.signUp({
+  // ALWAYS use Admin API to create user with email_confirm: true
+  // This completely bypasses email confirmation — user can login immediately
+  try {
+    const adminSupabase = await createAdminClient();
+    const { data: adminUser, error: adminError } = await adminSupabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+      },
+    });
+
+    if (adminError) {
+      // Handle "user already registered" case
+      if (adminError.message.toLowerCase().includes('already') || adminError.message.toLowerCase().includes('exists')) {
+        return { success: false, error: 'Email ini sudah terdaftar. Silakan login.' };
+      }
+      return { success: false, error: adminError.message };
+    }
+
+    if (adminUser?.user) {
+      // Auto sign-in the newly created & confirmed user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        // User created but sign-in failed — still success, ask to login manually
+        return { success: true, redirectTo: '/login?registered=true' };
+      }
+
+      return { success: true, redirectTo: '/onboarding' };
+    }
+  } catch (adminCatchError) {
+    console.error('[Register] Admin API failed, falling back to signUp:', adminCatchError);
+  }
+
+  // Fallback: regular signUp (might require email confirmation depending on Supabase settings)
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -71,42 +111,15 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
     },
   });
 
-  // If Supabase free tier email rate limit is hit, use Admin API with service role to create & auto-confirm user
-  if (error && (error.message.toLowerCase().includes('rate limit') || (error as any).status === 429)) {
-    try {
-      const adminSupabase = await createAdminClient();
-      const { data: adminUser, error: adminError } = await adminSupabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-        },
-      });
-
-      if (!adminError && adminUser?.user) {
-        // Automatically sign in the confirmed user
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (!signInError) {
-          return { success: true, redirectTo: '/onboarding' };
-        }
-      } else if (adminError) {
-        return { success: false, error: adminError.message };
-      }
-    } catch {
-      // Fall through to error return below
-    }
-  }
-
   if (error) {
     return { success: false, error: error.message };
   }
 
   if (data?.user) {
+    // Check if user needs email confirmation
+    if (data.user.identities && data.user.identities.length === 0) {
+      return { success: false, error: 'Email ini sudah terdaftar. Silakan login.' };
+    }
     return { success: true, redirectTo: '/onboarding' };
   }
 

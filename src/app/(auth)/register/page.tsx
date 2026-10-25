@@ -16,17 +16,19 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { registerAction } from '@/lib/auth/actions';
-import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -36,7 +38,11 @@ export default function RegisterPage() {
         setError(result.error || 'Pendaftaran gagal. Periksa kembali data Anda.');
         setLoading(false);
       } else {
-        router.push(result.redirectTo || '/onboarding');
+        // Show success notification before redirect
+        setSuccess('✅ Akun berhasil dibuat! Mengalihkan...');
+        setTimeout(() => {
+          router.push(result.redirectTo || '/onboarding');
+        }, 1500);
       }
     } catch {
       setError('Terjadi kendala jaringan. Silakan coba lagi.');
@@ -59,6 +65,13 @@ export default function RegisterPage() {
             <Alert variant="destructive" className="py-2.5">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert className="py-2.5 border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription className="text-xs font-semibold">{success}</AlertDescription>
             </Alert>
           )}
 

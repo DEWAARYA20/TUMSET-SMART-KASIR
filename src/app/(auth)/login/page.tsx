@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -16,10 +16,12 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { loginAction, socialLoginAction } from '@/lib/auth/actions';
-import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2, Sparkles, Store } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Sparkles, Store } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const registeredSuccess = searchParams.get('registered') === 'true';
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
@@ -93,6 +95,15 @@ export default function LoginPage() {
           <Alert variant="destructive" className="py-2.5">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-xs">{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {registeredSuccess && !error && (
+          <Alert className="py-2.5 border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertDescription className="text-xs font-semibold">
+              ✅ Akun berhasil dibuat! Silakan login dengan email & password Anda.
+            </AlertDescription>
           </Alert>
         )}
 
@@ -293,5 +304,13 @@ export default function LoginPage() {
         </p>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
