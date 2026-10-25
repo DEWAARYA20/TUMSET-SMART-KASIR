@@ -31,10 +31,10 @@ INSERT INTO public.stores (
 -- Categories
 INSERT INTO public.categories (id, store_id, name, slug, color) VALUES
 ('c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Sembako & Bahan Pokok', 'sembako', '#10b981'),
-('c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000002', 'Makanan Instan & Snack', 'makanan-instan', '#f59e0b'),
-('c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000003', 'Minuman Dingin & Hangat', 'minuman', '#3b82f6'),
-('c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', 'Perlengkapan Mandi & Cuci', 'kebersihan', '#8b5cf6'),
-('c0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000005', 'Rokok & Tembakau', 'rokok', '#ef4444')
+('c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'Makanan Instan & Snack', 'makanan-instan', '#f59e0b'),
+('c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'Minuman Dingin & Hangat', 'minuman', '#3b82f6'),
+('c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'Perlengkapan Mandi & Cuci', 'kebersihan', '#8b5cf6'),
+('c0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'Rokok & Tembakau', 'rokok', '#ef4444')
 ON CONFLICT (id) DO NOTHING;
 
 -- Suppliers
