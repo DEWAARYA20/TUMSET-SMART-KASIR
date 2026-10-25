@@ -71,8 +71,9 @@ export default function ProductsPage() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [barcodeModalProd, setBarcodeModalProd] = useState<ProductItem | null>(null);
   const [adjustModalProd, setAdjustModalProd] = useState<ProductItem | null>(null);
+  const [deleteConfirmProd, setDeleteConfirmProd] = useState<ProductItem | null>(null);
   const [newStockInput, setNewStockInput] = useState<number>(0);
-  const [adjustReason, setAdjustReason] = useState<string>('Koreksi fisik');
+  const [adjustReason, setAdjustReason] = useState<string>('Koreksi fisik (Stock Opname)');
 
   // Global hardware barcode scanner listener
   useBarcodeScanner({
@@ -569,57 +570,75 @@ export default function ProductsPage() {
                         </div>
                       </td>
 
-                      {/* Stock & Status */}
+                      {/* Stock & Status - Interactive Click to Adjust */}
                       <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className={`font-bold text-sm ${isOutStock ? 'text-destructive' : isLowStock ? 'text-amber-500' : 'text-foreground'}`}>
-                            {formatNumber(prod.current_stock)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">{prod.unit}</span>
-                        </div>
-                        {isOutStock ? (
-                          <Badge variant="destructive" className="text-[10px] py-0 px-1.5 mt-1">
-                            Habis
-                          </Badge>
-                        ) : isLowStock ? (
-                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-amber-500 text-amber-600 mt-1">
-                            Menipis (Min {prod.min_stock})
-                          </Badge>
-                        ) : (
-                          <span className="text-[10px] text-emerald-600 block mt-1">Aman</span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAdjust(prod)}
+                          className="group/stk inline-flex flex-col items-center justify-center p-2 rounded-xl border border-dashed border-border/70 hover:border-primary/60 hover:bg-primary/5 transition-all cursor-pointer w-full text-center"
+                          title="Klik untuk ubah atau sesuaikan stok barang"
+                        >
+                          <div className="flex items-center justify-center gap-1.5 font-bold text-sm">
+                            <span className={isOutStock ? 'text-destructive' : isLowStock ? 'text-amber-500' : 'text-foreground'}>
+                              {formatNumber(prod.current_stock)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{prod.unit}</span>
+                            <ArrowUpDown className="h-3 w-3 text-muted-foreground opacity-40 group-hover/stk:opacity-100 group-hover/stk:text-primary transition-opacity" />
+                          </div>
+                          {isOutStock ? (
+                            <Badge variant="destructive" className="text-[10px] py-0 px-1.5 mt-1">
+                              Habis • Ubah
+                            </Badge>
+                          ) : isLowStock ? (
+                            <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-amber-500 text-amber-600 mt-1">
+                              Menipis ({prod.min_stock})
+                            </Badge>
+                          ) : (
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block mt-0.5 group-hover/stk:underline">Aman • Ubah</span>
+                          )}
+                        </button>
                       </td>
 
-                      {/* Actions */}
+                      {/* Direct CRUD Action Buttons */}
                       <td className="py-3 px-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'h-8 w-8' })}>
-                            <MoreVertical className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuLabel className="text-xs">Aksi Produk</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleOpenAdjust(prod)}>
-                              <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
-                              Sesuaikan Stok
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setBarcodeModalProd(prod)}>
-                              <BarcodeIcon className="h-3.5 w-3.5 mr-2" />
-                              Cetak Barcode
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/products/${prod.id}/edit`)}>
-                              <Edit className="h-3.5 w-3.5 mr-2" />
-                              Edit Data
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => deleteProduct(prod.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 mr-2" />
-                              Hapus Produk
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleOpenAdjust(prod)}
+                            className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10 rounded-lg"
+                            title="Sesuaikan Stok Fisik"
+                          >
+                            <ArrowUpDown className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => router.push(`/products/${prod.id}/edit`)}
+                            className="h-8 w-8 text-foreground hover:bg-muted rounded-lg"
+                            title="Edit Data Produk (Harga, Nama, dll)"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setBarcodeModalProd(prod)}
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+                            title="Lihat & Cetak Barcode"
+                          >
+                            <BarcodeIcon className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setDeleteConfirmProd(prod)}
+                            className="h-8 w-8 text-destructive border-destructive/20 hover:bg-destructive/10 rounded-lg"
+                            title="Hapus Produk"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -713,31 +732,86 @@ export default function ProductsPage() {
       <Dialog open={!!adjustModalProd} onOpenChange={(open) => !open && setAdjustModalProd(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Sesuaikan Stok Barang</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUpDown className="h-5 w-5 text-primary" />
+              Sesuaikan Stok Barang
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              Perbarui jumlah stok fisik dan catat alasan penyesuaian
+              Perbarui jumlah stok fisik kios, lakukan penambahan kulakan atau koreksi stock opname
             </DialogDescription>
           </DialogHeader>
 
           {adjustModalProd && (
             <div className="space-y-4 py-2">
-              <div className="p-3 rounded-lg bg-muted/50 text-xs space-y-1">
-                <p className="font-semibold text-foreground">{adjustModalProd.name}</p>
-                <p className="text-muted-foreground">
-                  Stok saat ini di sistem: <span className="font-bold text-foreground">{adjustModalProd.current_stock} {adjustModalProd.unit}</span>
-                </p>
+              <div className="p-3.5 rounded-xl bg-muted/50 border border-border/60 text-xs space-y-1">
+                <p className="font-bold text-sm text-foreground">{adjustModalProd.name}</p>
+                <div className="flex items-center justify-between text-muted-foreground pt-1">
+                  <span>Stok saat ini di sistem:</span>
+                  <span className="font-bold text-foreground text-sm">
+                    {adjustModalProd.current_stock} {adjustModalProd.unit}
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="newStock" className="text-xs font-semibold">Stok Fisik Baru ({adjustModalProd.unit})</Label>
+              <div className="space-y-2">
+                <Label htmlFor="newStock" className="text-xs font-semibold">
+                  Stok Fisik Baru ({adjustModalProd.unit})
+                </Label>
                 <Input
                   id="newStock"
                   type="number"
                   value={newStockInput}
                   onChange={(e) => setNewStockInput(Number(e.target.value))}
                   min={0}
-                  className="h-10 text-sm font-semibold"
+                  className="h-11 text-base font-bold text-primary"
+                  autoFocus
                 />
+
+                {/* Quick Add / Deduct Presets */}
+                <div className="flex flex-wrap items-center justify-between gap-1 pt-1">
+                  <span className="text-[11px] text-muted-foreground font-medium">Ubah Cepat:</span>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {[+1, +5, +10, +50].map((inc) => (
+                      <Button
+                        key={inc}
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        onClick={() => setNewStockInput((prev) => Math.max(0, Number(prev) + inc))}
+                        className="h-7 text-xs px-2 font-semibold"
+                      >
+                        +{inc}
+                      </Button>
+                    ))}
+                    {[-1, -5].map((dec) => (
+                      <Button
+                        key={dec}
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        onClick={() => setNewStockInput((prev) => Math.max(0, Number(prev) + dec))}
+                        className="h-7 text-xs px-2 text-destructive font-semibold"
+                      >
+                        {dec}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Stock difference indicator */}
+                <div className="text-[11px] font-medium text-center py-1.5 px-3 rounded-lg bg-muted/40 border border-border/40">
+                  {Number(newStockInput) - adjustModalProd.current_stock > 0 ? (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                      ▲ Bertambah +{Number(newStockInput) - adjustModalProd.current_stock} {adjustModalProd.unit} (Stok Masuk)
+                    </span>
+                  ) : Number(newStockInput) - adjustModalProd.current_stock < 0 ? (
+                    <span className="text-destructive font-semibold">
+                      ▼ Berkurang {Number(newStockInput) - adjustModalProd.current_stock} {adjustModalProd.unit} (Stok Keluar)
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Tidak ada perubahan jumlah stok</span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -746,8 +820,9 @@ export default function ProductsPage() {
                   id="reason"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-medium"
                 >
+                  <option value="Kulakan / Barang Masuk Baru">Kulakan / Barang Masuk Baru</option>
                   <option value="Koreksi fisik (Stock Opname)">Koreksi fisik (Stock Opname)</option>
                   <option value="Barang rusak / bocor">Barang rusak / bocor</option>
                   <option value="Kedaluwarsa (Expired)">Kedaluwarsa (Expired)</option>
@@ -762,8 +837,52 @@ export default function ProductsPage() {
             <Button variant="outline" onClick={() => setAdjustModalProd(null)}>
               Batal
             </Button>
-            <Button onClick={handleSaveAdjust}>
-              Simpan Penyesuaian
+            <Button onClick={handleSaveAdjust} className="font-semibold">
+              Simpan Penyesuaian Stok
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deleteConfirmProd} onOpenChange={(open) => !open && setDeleteConfirmProd(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Hapus Produk
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Konfirmasi penghapusan data barang dari katalog toko
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteConfirmProd && (
+            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 space-y-2 text-xs text-foreground">
+              <p>
+                Apakah Anda yakin ingin menghapus produk <strong className="font-bold text-destructive">{deleteConfirmProd.name}</strong>?
+              </p>
+              <p className="text-muted-foreground text-[11px] leading-relaxed">
+                Produk akan dihapus dari katalog kasir dan tidak dapat di-scan lagi. Data riwayat transaksi penjualan yang sudah terjadi sebelumnya tetap tersimpan aman.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteConfirmProd(null)}>
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirmProd) {
+                  deleteProduct(deleteConfirmProd.id);
+                  setDeleteConfirmProd(null);
+                }
+              }}
+              className="font-semibold"
+            >
+              Ya, Hapus Produk
             </Button>
           </DialogFooter>
         </DialogContent>

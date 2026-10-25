@@ -8,16 +8,31 @@ export function ServiceWorkerRegister() {
   const [showReconnected, setShowReconnected] = useState(false);
 
   useEffect(() => {
-    // 1. Register Service Worker
+    // 1. Service Worker: Only in production; unregister in development to avoid stale caching
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((reg) => {
-          console.log('[TUMSET PWA] Service Worker registered with scope:', reg.scope);
-        })
-        .catch((err) => {
-          console.warn('[TUMSET PWA] Service Worker registration failed:', err);
+      if (process.env.NODE_ENV === 'production') {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => {
+            console.log('[TUMSET PWA] Service Worker registered with scope:', reg.scope);
+          })
+          .catch((err) => {
+            console.warn('[TUMSET PWA] Service Worker registration failed:', err);
+          });
+      } else {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const reg of registrations) {
+            reg.unregister();
+          }
         });
+        if ('caches' in window) {
+          caches.keys().then((names) => {
+            for (const name of names) {
+              caches.delete(name);
+            }
+          });
+        }
+      }
     }
 
     // 2. Network connectivity listeners
