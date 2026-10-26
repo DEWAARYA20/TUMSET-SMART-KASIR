@@ -40,58 +40,16 @@ interface SubscriptionStoreState {
   adminRejectTransfer: (orderId: string, reason: string) => void;
   adminTogglePlan: (planCode: string) => void;
   getAllOrders: () => PaymentOrder[];
+  resetToDefaults: () => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionStoreState>()(
   persist(
     (set, get) => ({
       plans: OFFICIAL_PLANS,
-      // Default initial subscription for demo or new user
-      subscription: {
-        id: 'sub-active-demo',
-        user_id: 'user-demo-01',
-        store_id: 'store-demo-01',
-        plan_id: 'plan-yearly',
-        plan: OFFICIAL_PLANS[4], // Paket Tahunan (12 Bulan)
-        status: 'active',
-        starts_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 86400000 * 365).toISOString(), // 365 days ahead
-        auto_renew: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      orders: [
-        {
-          id: 'ord-init-01',
-          order_number: 'INV-SUB-20261025-1001',
-          user_id: 'user-demo-01',
-          store_id: 'store-demo-01',
-          plan_id: 'plan-yearly',
-          plan_name: 'Paket Tahunan (12 Bulan)',
-          amount_idr: 500000,
-          currency: 'IDR',
-          payment_method: 'qris',
-          provider: 'qris_gateway',
-          status: 'paid',
-          paid_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 86400000).toISOString(),
-          created_at: new Date().toISOString(),
-        },
-      ],
-      history: [
-        {
-          id: 'hist-01',
-          subscription_id: 'sub-active-demo',
-          payment_order_id: 'ord-init-01',
-          action: 'activated',
-          previous_status: 'none',
-          new_status: 'active',
-          starts_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 86400000 * 365).toISOString(),
-          notes: 'Aktivitas awal langganan paket Tahunan',
-          created_at: new Date().toISOString(),
-        },
-      ],
+      subscription: null,
+      orders: [],
+      history: [],
 
       createPaymentOrder: (planCode, paymentMethod, userId = 'user-demo-01', storeId = 'store-demo-01') => {
         const plan = get().plans.find((p) => p.code === planCode) || OFFICIAL_PLANS[0];
@@ -231,12 +189,21 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
 
       checkSubscriptionStatus: () => {
         const sub = get().subscription;
-        if (!sub || sub.status !== 'active') {
+        if (!sub) {
           return {
             isSubscribed: false,
-            status: (sub?.status as SubscriptionStatus) || 'expired',
+            status: 'inactive' as SubscriptionStatus,
             daysRemaining: 0,
             expiresAt: null,
+            isExpiringSoon: false,
+          };
+        }
+        if (sub.status !== 'active') {
+          return {
+            isSubscribed: false,
+            status: (sub.status as SubscriptionStatus) || 'inactive',
+            daysRemaining: 0,
+            expiresAt: sub.expires_at || null,
             isExpiringSoon: false,
           };
         }
@@ -295,9 +262,31 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
       },
 
       getAllOrders: () => get().orders,
+
+      resetToDefaults: () => {
+        set({
+          plans: OFFICIAL_PLANS,
+          subscription: null,
+          orders: [],
+          history: [],
+        });
+      },
     }),
     {
       name: 'tumset-subscription-storage',
+      version: 2,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as Partial<SubscriptionStoreState>;
+        if (version < 2 || state?.subscription?.id === 'sub-active-demo') {
+          return {
+            plans: OFFICIAL_PLANS,
+            subscription: null,
+            orders: [],
+            history: [],
+          };
+        }
+        return state;
+      },
     }
   )
 );

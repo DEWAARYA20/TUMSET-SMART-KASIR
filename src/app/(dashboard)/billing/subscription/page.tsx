@@ -57,6 +57,10 @@ function formatDateTime(dateStr: string): string {
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
+  inactive: {
+    label: 'Belum Berlangganan',
+    color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+  },
   active: {
     label: 'Aktif',
     color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',

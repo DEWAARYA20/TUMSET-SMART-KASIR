@@ -155,6 +155,11 @@ function SubscriptionWall({
   const router = useRouter();
 
   const statusMessages: Record<string, { title: string; desc: string; icon: React.ReactNode }> = {
+    inactive: {
+      title: 'Pilih Paket Berlangganan',
+      desc: 'Aktifkan paket langganan TUMSET Smart Kios untuk mulai mengoperasikan kasir POS, stok barang, barcode scanner, dan laporan laba rugi kios Anda.',
+      icon: <Crown className="h-8 w-8" />,
+    },
     expired: {
       title: 'Langganan Telah Berakhir',
       desc: 'Masa langganan Anda sudah habis. Perpanjang sekarang untuk melanjutkan akses ke semua fitur kasir pintar.',
@@ -182,7 +187,7 @@ function SubscriptionWall({
     },
   };
 
-  const msg = statusMessages[status] || statusMessages.expired;
+  const msg = statusMessages[status] || statusMessages.inactive;
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
@@ -199,6 +204,7 @@ function SubscriptionWall({
 
             {/* Status Badge */}
             <Badge className="text-[10px] font-bold px-3 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 border-0">
+              {status === 'inactive' && 'Belum Berlangganan'}
               {status === 'expired' && 'Kedaluwarsa'}
               {status === 'pending' && 'Menunggu'}
               {status === 'canceled' && 'Dibatalkan'}

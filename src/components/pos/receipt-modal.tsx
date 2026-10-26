@@ -41,10 +41,9 @@ export function ReceiptModal({
   const [copied, setCopied] = useState(false);
   const [customerPhone, setCustomerPhone] = useState('');
   const [showPhoneInput, setShowPhoneInput] = useState(false);
+  const [isPrintingBt, setIsPrintingBt] = useState(false);
 
   if (!sale) return null;
-
-  const [isPrintingBt, setIsPrintingBt] = useState(false);
 
   async function handleBluetoothPrint() {
     if (!sale) return;

@@ -3,6 +3,7 @@
  */
 
 export type SubscriptionStatus =
+  | 'inactive'
   | 'pending'
   | 'active'
   | 'expired'
